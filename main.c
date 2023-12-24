@@ -10,6 +10,11 @@ typedef struct
   int y;
 } vector_2d_t;
 
+typedef struct {
+  vector_2d_t pos;
+  vector_2d_t dir;
+} ball_t;
+
 typedef struct
 {
   int score;
@@ -56,55 +61,55 @@ char draw_player(int x, int y, player_t *player1, player_t *player2)
 /**
  * Check if the ball hitted one of the players
  */
-char player_hit(vector_2d_t *ball, player_t *player1, player_t *player2)
+char player_hit(ball_t *ball, player_t *player1, player_t *player2)
 {
   // Left Player
-  if (ball->x == 2 && ball->y >= player1->pos.y && ball->y <= player1->pos.y + player1->height)
+  if (ball->pos.x == 2 && ball->pos.y >= player1->pos.y && ball->pos.y <= player1->pos.y + player1->height)
     return 1;
   // Right Player
-  if (ball->x == field_width - 3 && ball->y >= player2->pos.y && ball->y <= player2->pos.y + player2->height)
+  if (ball->pos.x == field_width - 3 && ball->pos.y >= player2->pos.y && ball->pos.y <= player2->pos.y + player2->height)
     return 1;
   return 0;
 }
 
-void update_ball(vector_2d_t *ball, vector_2d_t *new_ball, vector_2d_t *ball_dir, player_t *player1, player_t *player2)
+void update_ball(ball_t *ball, vector_2d_t *new_ball, player_t *player1, player_t *player2)
 {
-  new_ball->x = ball->x;
-  new_ball->y = ball->y;
-  new_ball->x += ball_dir->x;
-  new_ball->y += ball_dir->y;
+  new_ball->x = ball->pos.x;
+  new_ball->y = ball->pos.y;
+  new_ball->x += ball->dir.x;
+  new_ball->y += ball->dir.y;
 
   if (new_ball->x <= 0 || new_ball->x >= field_width || player_hit(ball, player1, player2))
   {
-    ball_dir->x *= -1;
+    ball->dir.x *= -1;
   }
   if (new_ball->y <= 0 || new_ball->y >= field_height)
   {
-    ball_dir->y *= -1;
+    ball->dir.y *= -1;
   }
 
-  ball->x += ball_dir->x;
-  ball->y += ball_dir->y;
+  ball->pos.x += ball->dir.x;
+  ball->pos.y += ball->dir.y;
 }
 
-void update_score(vector_2d_t *ball, player_t *player1, player_t *player2)
+void update_score(ball_t *ball, player_t *player1, player_t *player2)
 {
-  if (ball->x == 1)
+  if (ball->pos.x == 1)
   {
     player1->score++;
   }
-  if (ball->x == field_width - 1)
+  if (ball->pos.x == field_width - 1)
   {
     player2->score++;
   }
 }
 
-void init_ball(vector_2d_t *ball, vector_2d_t *ball_dir)
+void init_ball(ball_t *ball)
 {
-  ball->x = field_width / 2;
-  ball->y = field_height / 2;
-  ball_dir->x = rand() % 2 ? -1 : 1;
-  ball_dir->y = rand() % 2 ? -1 : 1;
+  ball->pos.x = field_width / 2;
+  ball->pos.y = field_height / 2;
+  ball->dir.x = rand() % 2 ? -1 : 1;
+  ball->dir.y = rand() % 2 ? -1 : 1;
 }
 
 void print_score(player_t *player1, player_t *player2)
@@ -119,10 +124,9 @@ int main()
 {
   srand(time(NULL));
 
-  vector_2d_t ball;
-  vector_2d_t ball_dir;
-  init_ball(&ball, &ball_dir);
-  vector_2d_t new_ball = {.x = ball.x, .y = ball.y};
+  ball_t ball;
+  init_ball(&ball);
+  vector_2d_t new_ball = {.x = ball.pos.x, .y = ball.pos.y};
 
   player_t player1 = {.score = 0, .pos.x = 1, .height = 4};
   player_t player2 = {.score = 0, .pos.x = field_width - 2, .height = 4};
@@ -140,7 +144,7 @@ int main()
   for (int i = 0; i < 200; i++)
   {
 
-    update_ball(&ball, &new_ball, &ball_dir, &player1, &player2);
+    update_ball(&ball, &new_ball, &player1, &player2);
     update_score(&ball, &player1, &player2);
 
     int write_index = 0;
@@ -154,7 +158,7 @@ int main()
         }
         else
         {
-          if (y == ball.y && x == ball.x)
+          if (y == ball.pos.y && x == ball.pos.x)
           {
             display[write_index++] = '0';
           }
