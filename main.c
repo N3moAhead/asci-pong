@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 const int field_height = 20;
 const int field_width = 100;
@@ -36,15 +37,17 @@ void clear()
 
 /**
  * Check if a player should be drawn at the current position
-*/
+ */
 char draw_player(int x, int y, player_t *player1, player_t *player2)
 {
   // Left Player
-  if ((y >= player1->pos.y && y <= (player1->pos.y + player1->height)) && player1->pos.x == x) {
+  if ((y >= player1->pos.y && y <= (player1->pos.y + player1->height)) && player1->pos.x == x)
+  {
     return 1;
   }
   // Right Player
-  if ((y >= player2->pos.y && y <= (player2->pos.y + player2->height)) && player2->pos.x == x) {
+  if ((y >= player2->pos.y && y <= (player2->pos.y + player2->height)) && player2->pos.x == x)
+  {
     return 1;
   }
   return 0;
@@ -52,7 +55,7 @@ char draw_player(int x, int y, player_t *player1, player_t *player2)
 
 /**
  * Check if the ball hitted one of the players
-*/
+ */
 char player_hit(vector_2d_t *ball, player_t *player1, player_t *player2)
 {
   // Left Player
@@ -96,6 +99,14 @@ void update_score(vector_2d_t *ball, player_t *player1, player_t *player2)
   }
 }
 
+void init_ball(vector_2d_t *ball, vector_2d_t *ball_dir)
+{
+  ball->x = field_width / 2;
+  ball->y = field_height / 2;
+  ball_dir->x = rand() % 2 ? -1 : 1;
+  ball_dir->y = rand() % 2 ? -1 : 1;
+}
+
 void print_score(player_t *player1, player_t *player2)
 {
   int offset = (field_width / 2) - 5;
@@ -106,9 +117,12 @@ void print_score(player_t *player1, player_t *player2)
 
 int main()
 {
-  vector_2d_t ball = {.x = 10, .y = 2};
+  srand(time(NULL));
+
+  vector_2d_t ball;
+  vector_2d_t ball_dir;
+  init_ball(&ball, &ball_dir);
   vector_2d_t new_ball = {.x = ball.x, .y = ball.y};
-  vector_2d_t ball_dir = {.x = 1, .y = 0};
 
   player_t player1 = {.score = 0, .pos.x = 1, .height = 4};
   player_t player2 = {.score = 0, .pos.x = field_width - 2, .height = 4};
