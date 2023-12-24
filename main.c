@@ -10,7 +10,8 @@ typedef struct
   int y;
 } vector_2d_t;
 
-typedef struct {
+typedef struct
+{
   vector_2d_t pos;
   vector_2d_t dir;
 } ball_t;
@@ -38,6 +39,23 @@ void clear()
 #else
   system("clear");
 #endif
+}
+
+/**
+ * The player will just try to always match the height of the ball
+ */
+void update_player_stupid(player_t *player, ball_t *ball)
+{
+  // Ball above the player
+  if (player->pos.y + player->height + 1 < ball->pos.y)
+  {
+    player->pos.y++;
+  }
+  // Ball below the player
+  if (player->pos.y > ball->pos.y)
+  {
+    player->pos.y--;
+  }
 }
 
 /**
@@ -74,11 +92,10 @@ char player_hit(ball_t *ball, player_t *player1, player_t *player2)
 
 void update_ball(ball_t *ball, vector_2d_t *new_ball, player_t *player1, player_t *player2)
 {
-  new_ball->x = ball->pos.x;
-  new_ball->y = ball->pos.y;
-  new_ball->x += ball->dir.x;
-  new_ball->y += ball->dir.y;
+  new_ball->x = ball->pos.x + ball->dir.x;
+  new_ball->y = ball->pos.y + ball->dir.y;
 
+  // Checking if the ball has to turn direction
   if (new_ball->x <= 0 || new_ball->x >= field_width || player_hit(ball, player1, player2))
   {
     ball->dir.x *= -1;
@@ -88,6 +105,7 @@ void update_ball(ball_t *ball, vector_2d_t *new_ball, player_t *player1, player_
     ball->dir.y *= -1;
   }
 
+  // Updating the ball position
   ball->pos.x += ball->dir.x;
   ball->pos.y += ball->dir.y;
 }
@@ -146,6 +164,12 @@ int main()
 
     update_ball(&ball, &new_ball, &player1, &player2);
     update_score(&ball, &player1, &player2);
+
+    /** Update the player on every fith render */
+    if (i % 5 == 0) {
+      update_player_stupid(&player1, &ball);
+      update_player_stupid(&player2, &ball);
+    }
 
     int write_index = 0;
     for (int y = 0; y < field_height; y++)
