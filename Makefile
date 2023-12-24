@@ -10,5 +10,5 @@ make run:
 start:
 	./main
 
-clean:
+clear:
 	rm *.o main

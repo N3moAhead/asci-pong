@@ -1,3 +1,4 @@
+// Developing A Score Display
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -8,6 +9,11 @@ typedef struct
   int x;
   int y;
 } vector_2d_t;
+
+typedef struct
+{
+  int score;
+} player_t;
 
 void sleep()
 {
@@ -47,11 +53,36 @@ void update_ball(vector_2d_t *ball, vector_2d_t *new_ball, vector_2d_t *ball_dir
   ball->y += ball_dir->y;
 }
 
+void update_score(vector_2d_t *ball, player_t *player1, player_t *player2)
+{
+  if (ball->x == 1)
+  {
+    player1->score++;
+  }
+  if (ball->x == field_width - 1)
+  {
+    player2->score++;
+  }
+}
+
+void print_score(player_t *player1, player_t *player2)
+{
+  int offset = (field_width / 2) - 5;
+  for (int i = 0; i < offset; i++)
+    printf(" ");
+  printf("%d - %d\n", player1->score, player2->score);
+  
+}
+
 int main()
 {
   vector_2d_t ball = {.x = 10, .y = 10};
   vector_2d_t new_ball = {.x = ball.x, .y = ball.y};
   vector_2d_t ball_dir = {.x = 1, .y = 1};
+
+  player_t player1 = {.score = 0};
+  player_t player2 = {.score = 0};
+  ;
 
   char *display = (char *)malloc(2 * field_height * field_width * sizeof(char));
   if (display == NULL)
@@ -65,6 +96,7 @@ int main()
   {
 
     update_ball(&ball, &new_ball, &ball_dir);
+    update_score(&ball, &player1, &player2);
 
     int write_index = 0;
     for (int y = 0; y < field_height; y++)
@@ -92,6 +124,7 @@ int main()
     display[write_index++] = '\0';
     sleep();
     clear();
+    print_score(&player1, &player2);
     printf("%s\n", display);
   }
   return 0;
