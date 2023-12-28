@@ -3,7 +3,7 @@
 #include <time.h>
 
 const int field_height = 20;
-const int field_width = 100;
+const int field_width = 70;
 typedef struct
 {
   int x;
@@ -42,20 +42,47 @@ void clear()
 }
 
 /**
- * The player will just try to always match the height of the ball
+ * Determine wether a player is on the left or the right side
  */
-void update_player_stupid(player_t *player, ball_t *ball)
+char is_left_player(player_t *player)
 {
-  // Ball above the player
-  if (player->pos.y + player->height + 1 < ball->pos.y)
+  if (player->pos.x < field_width / 2)
+    return 1;
+  return 0;
+}
+
+void move_player_to_height(player_t *player, int height) {
+  // height above the player
+  if (player->pos.y + player->height + 1 < height)
   {
     player->pos.y++;
   }
-  // Ball below the player
-  if (player->pos.y > ball->pos.y)
+  // height below the player
+  if (player->pos.y > height)
   {
     player->pos.y--;
   }
+}
+
+/**
+ * Trying to predict where the ball will hit while ignoring direction by
+ * hitting the upper or lower walls.
+*/
+void update_player_lvl2(player_t *player, ball_t *ball)
+{
+  int distance_to_wall = ball->pos.x - 2;
+  int wall_hit = (ball->pos.y + (ball->dir.y * distance_to_wall)) % field_height + 1;
+  wall_hit = wall_hit < 0 ? wall_hit * -1 : wall_hit;
+
+  move_player_to_height(player, wall_hit);
+}
+
+/**
+ * The player will try to always match the height of the ball
+ */
+void update_player_lvl1(player_t *player, ball_t *ball)
+{
+  move_player_to_height(player, ball->pos.y);
 }
 
 /**
@@ -82,10 +109,10 @@ char draw_player(int x, int y, player_t *player1, player_t *player2)
 char player_hit(ball_t *ball, player_t *player1, player_t *player2)
 {
   // Left Player
-  if (ball->pos.x == 2 && ball->pos.y >= player1->pos.y && ball->pos.y <= player1->pos.y + player1->height)
+  if (ball->dir.x == -1 && ball->pos.x == 2 && ball->pos.y >= player1->pos.y && ball->pos.y <= player1->pos.y + player1->height)
     return 1;
   // Right Player
-  if (ball->pos.x == field_width - 3 && ball->pos.y >= player2->pos.y && ball->pos.y <= player2->pos.y + player2->height)
+  if (ball->dir.x == 1 && ball->pos.x == field_width - 3 && ball->pos.y >= player2->pos.y && ball->pos.y <= player2->pos.y + player2->height)
     return 1;
   return 0;
 }
@@ -159,16 +186,17 @@ int main()
   }
 
   // Gameloop
-  for (int i = 0; i < 200; i++)
+  for (int i = 0; player1.score < 3 && player2.score < 3; i++)
   {
 
     update_ball(&ball, &new_ball, &player1, &player2);
     update_score(&ball, &player1, &player2);
 
     /** Update the player on every fith render */
-    if (i % 5 == 0) {
-      update_player_stupid(&player1, &ball);
-      update_player_stupid(&player2, &ball);
+    if (i % 5 == 0)
+    {
+      update_player_lvl2(&player1, &ball);
+      update_player_lvl1(&player2, &ball);
     }
 
     int write_index = 0;
@@ -207,6 +235,13 @@ int main()
     print_score(&player1, &player2);
     printf("%s\n", display);
   }
+
+  if (player1.score < 3) {
+    printf("Right Player Won!\n");
+  } else {
+    printf("Left Player Won!\n");
+  }
+
   free(display);
   return 0;
 }
