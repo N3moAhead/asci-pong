@@ -141,11 +141,11 @@ void update_score(ball_t *ball, player_t *player1, player_t *player2)
 {
   if (ball->pos.x == 1)
   {
-    player1->score++;
+    player2->score++;
   }
   if (ball->pos.x == field_width - 1)
   {
-    player2->score++;
+    player1->score++;
   }
 }
 
